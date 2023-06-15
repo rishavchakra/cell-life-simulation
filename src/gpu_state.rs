@@ -6,7 +6,7 @@ pub struct GpuState {
     /// Winit Window handle
     window: winit::window::Window,
     /// GPU device handle
-    device: wgpu::Device,
+    pub device: wgpu::Device,
     /// GPU Command queue
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
