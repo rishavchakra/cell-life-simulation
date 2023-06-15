@@ -7,19 +7,20 @@ use winit::{
 mod gpu_state;
 mod renderer;
 mod simulation;
+mod texture;
 
 pub async fn run() {
     env_logger::init();
 
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
-
-    // let mut gpu_state = gpu_state::GpuState::new(window).await;
+    let window = WindowBuilder::new()
+        .with_resizable(false)
+        .build(&event_loop).unwrap();
     let mut renderer = renderer::Renderer::new(window).await;
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::RedrawRequested(window_id) if window_id == renderer.gpu_state.window().id() => {
-            renderer.sim_step();
+            renderer.sim_state.step(&renderer.gpu_state.device, &renderer.gpu_state.queue);
             match renderer.gpu_state.render() {
                 Ok(_) => {}
                 Err(wgpu::SurfaceError::Lost) => {

@@ -2,14 +2,14 @@ use winit::{window::Window, event::WindowEvent};
 
 pub struct GpuState {
     /// The part of the window we draw to
-    surface: wgpu::Surface,
+    pub surface: wgpu::Surface,
     /// Winit Window handle
     window: winit::window::Window,
     /// GPU device handle
     pub device: wgpu::Device,
     /// GPU Command queue
-    queue: wgpu::Queue,
-    config: wgpu::SurfaceConfiguration,
+    pub queue: wgpu::Queue,
+    pub config: wgpu::SurfaceConfiguration,
     /// Size of the window
     size: winit::dpi::PhysicalSize<u32>,
     /// Rendering pipeline
