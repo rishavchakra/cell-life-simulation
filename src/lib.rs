@@ -5,6 +5,7 @@ use winit::{
 };
 
 mod gpu_state;
+mod simulation;
 
 pub async fn run() {
     env_logger::init();
