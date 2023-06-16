@@ -1,6 +1,6 @@
 pub struct Texture {
-    texture_view: wgpu::TextureView,
-    texture_format: wgpu::TextureFormat,
+    pub texture_view: wgpu::TextureView,
+    pub texture_format: wgpu::TextureFormat,
 }
 
 impl Texture {

@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 pub struct Shader {
-    module: wgpu::ShaderModule,
+    pub module: wgpu::ShaderModule,
 }
 
 impl Shader {
