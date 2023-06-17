@@ -100,7 +100,7 @@ pub fn run(
     WindowData {
         // destructured to allow for partial borrows
         window,
-        mut size,
+        size: _size,
         event_loop,
         device,
         instance: _instance,
@@ -114,16 +114,15 @@ pub fn run(
         Event::RedrawRequested(window_id) if window_id == window.id() => {
             let surface_texture = &surface.get_current_texture().unwrap();
             let render_command_encoder = renderer.render(&device, &surface_texture);
-            queue.submit(std::iter::once(render_command_encoder.finish()));
+            queue.submit(vec![render_command_encoder.finish()].into_iter());
         }
         Event::WindowEvent {
             ref event,
             window_id,
         } if window_id == window.id() => match event {
             WindowEvent::Resized(new_inner_size) => {
-                size = *new_inner_size;
-                surface_config.width = size.width;
-                surface_config.height = size.height;
+                surface_config.width = new_inner_size.width;
+                surface_config.height = new_inner_size.height;
                 surface.configure(&device, &surface_config);
             }
             WindowEvent::ScaleFactorChanged {
@@ -131,9 +130,8 @@ pub fn run(
                 new_inner_size,
                 ..
             } => {
-                size = **new_inner_size;
-                surface_config.width = size.width;
-                surface_config.height = size.height;
+                surface_config.width = new_inner_size.width;
+                surface_config.height = new_inner_size.height;
                 surface.configure(&device, &surface_config);
             }
             // Window close event or Escape key pressed: Exit

@@ -26,7 +26,11 @@ impl Renderer {
             Vertex::new([1, 1], [1, 1]),
             Vertex::new([-1, 1], [0, 1]),
         ];
-        let index_data: [u16; 6] = [0, 1, 2, 2, 3, 0];
+        #[rustfmt::skip]
+        let index_data: [u16; 6] = [
+            0, 1, 2,
+            2, 3, 0,
+        ];
         let vertex_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Vertex Buffer"),
             contents: bytemuck::cast_slice(&vertex_data),
@@ -85,7 +89,7 @@ impl Renderer {
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
-            bind_group_layouts: &[],
+            bind_group_layouts: &[&bind_group_layout],
             push_constant_ranges: &[],
         });
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
