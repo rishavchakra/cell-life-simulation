@@ -94,7 +94,7 @@ impl WindowData {
     }
 }
 
-pub fn run<F>(
+pub fn run (
     WindowData {
         // destructured to allow for partial borrows
         window,
@@ -106,18 +106,12 @@ pub fn run<F>(
         surface,
         mut surface_config,
     }: WindowData,
-    mut render: F,
-) where
-    F: FnMut(&mut wgpu::CommandEncoder) + 'static,
-{
+    mut renderer: Renderer
+) {
     event_loop.run(move |event, _, control_flow| match event {
         Event::RedrawRequested(window_id) if window_id == window.id() => {
-            let mut command_encoder =
-                device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                    label: Some("Encoder"),
-                });
-            render(&mut command_encoder);
-            queue.submit(Some(command_encoder.finish()));
+            let render_command_encoder = renderer.render(&device, &surface);
+            queue.submit(std::iter::once(render_command_encoder.finish()));
         }
         Event::WindowEvent {
             ref event,

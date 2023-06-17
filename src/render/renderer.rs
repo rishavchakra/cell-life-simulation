@@ -94,25 +94,7 @@ impl Renderer {
             vertex: wgpu::VertexState {
                 module: &render_shader.module,
                 entry_point: "vs_main",
-                buffers: &[
-                    wgpu::VertexBufferLayout {
-                        array_stride: std::mem::size_of::<SimulationParams>()
-                            as wgpu::BufferAddress,
-                        step_mode: wgpu::VertexStepMode::Vertex,
-                        attributes: &[
-                            wgpu::VertexAttribute {
-                                format: wgpu::VertexFormat::Float32x4,
-                                offset: 0,
-                                shader_location: 0,
-                            },
-                            wgpu::VertexAttribute {
-                                format: wgpu::VertexFormat::Float32x2,
-                                offset: 32 / 8 * 4,
-                                shader_location: 1,
-                            },
-                        ], // attributes
-                    }, // vert buffer layout
-                ], // buffers
+                buffers: &[Vertex::desc()], // buffers
             },
             fragment: Some(wgpu::FragmentState {
                 module: &render_shader.module,
@@ -144,10 +126,26 @@ impl Renderer {
 
     pub fn render(&mut self, texture: &Texture, encoder: &mut wgpu::CommandEncoder) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+    pub fn render(
+        &mut self,
+        device: &wgpu::Device,
+        surface: &wgpu::Surface,
+    ) -> wgpu::CommandEncoder {
+        println!("Render called");
+        let view = surface
+            .get_current_texture()
+            .unwrap()
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
+        let mut command_encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Render Encoder"),
+        });
+        let mut render_pass = command_encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             depth_stencil_attachment: None,
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &texture.texture_view,
+                view: &view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
@@ -166,6 +164,9 @@ impl Renderer {
         render_pass.insert_debug_marker("Drawing");
         render_pass.draw_indexed(0..6, 0, 0..1);
         render_pass.pop_debug_group();
+        drop(render_pass);
+
+        command_encoder
     }
 }
 
@@ -181,6 +182,19 @@ impl Vertex {
         Vertex {
             pos: [pos[0] as f32, pos[1] as f32, 0.0, 1.0],
             uv_coord: [uv[0] as f32, uv[1] as f32],
+        }
+    }
+
+    const ATTR_ARRAY: [wgpu::VertexAttribute; 2] = wgpu::vertex_attr_array![
+        0 => Float32x4,
+        1 => Float32x2,
+    ];
+
+    fn desc() -> wgpu::VertexBufferLayout<'static> {
+        wgpu::VertexBufferLayout {
+            array_stride: std::mem::size_of::<SimulationParams>() as wgpu::BufferAddress,
+            step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &Vertex::ATTR_ARRAY,
         }
     }
 }

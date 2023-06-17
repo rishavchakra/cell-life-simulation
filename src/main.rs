@@ -17,6 +17,7 @@ async fn main() {
     let simulation_params =
         SimulationParamsBuf::new(&window.device, SimulationParams::new(&window.size));
     let mut renderer = renderer::Renderer::new(
+    let renderer = renderer::Renderer::new(
         &window.device,
         &cell_texture,
         &simulation_params,
@@ -24,7 +25,5 @@ async fn main() {
     );
     // Can access through closure arguments the window data
     // needs to be passed shared and simulation arguments by reference
-    window::run(window, move |mut encoder| {
-        renderer.render(&cell_texture, &mut encoder)
-    });
+    window::run(window, renderer);
 }
