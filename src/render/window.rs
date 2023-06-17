@@ -6,13 +6,13 @@ use winit::{
 
 pub struct WindowData {
     window: Window,
-    size: winit::dpi::PhysicalSize<u32>,
+    pub size: winit::dpi::PhysicalSize<u32>,
     event_loop: EventLoop<()>,
-    device: wgpu::Device,
+    pub device: wgpu::Device,
     instance: wgpu::Instance,
     queue: wgpu::Queue,
     surface: wgpu::Surface,
-    surface_config: wgpu::SurfaceConfiguration,
+    pub surface_config: wgpu::SurfaceConfiguration,
 }
 
 impl WindowData {
@@ -42,7 +42,7 @@ impl WindowData {
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
-                    features: wgpu::Features::empty(),
+                    features: wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES,
                     limits: wgpu::Limits::default(),
                     label: Some("GPU Adapter device"),
                 },
@@ -56,8 +56,11 @@ impl WindowData {
             .formats
             .iter()
             .copied()
-            .find(|f| f.describe().srgb)
+            .find(|f| f.is_srgb())
             .unwrap_or(surface_caps.formats[0]);
+        // let surface_format = surface.get_default_config(&adapter, size.width, size.height).unwrap().format;
+        // let surface_format = wgpu::TextureFormat::R32Float;
+        // let surface_format = wgpu::TextureFormat::Rgba8UnormSrgb;
         let surface_config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,
@@ -67,6 +70,7 @@ impl WindowData {
             alpha_mode: surface_caps.alpha_modes[0],
             view_formats: vec![],
         };
+        surface.configure(&device, &surface_config);
 
         Self {
             window,
@@ -80,7 +84,7 @@ impl WindowData {
         }
     }
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    fn _resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         if new_size.width > 0 && new_size.height > 0 {
             self.size = new_size;
             self.surface_config.width = self.size.width;
@@ -90,19 +94,31 @@ impl WindowData {
     }
 }
 
-pub fn run(
-    WindowData { // destructured to allow for partial borrows
+pub fn run<F>(
+    WindowData {
+        // destructured to allow for partial borrows
         window,
         mut size,
         event_loop,
         device,
-        instance,
+        instance: _instance,
         queue,
         surface,
         mut surface_config,
     }: WindowData,
-) {
+    mut render: F,
+) where
+    F: FnMut(&mut wgpu::CommandEncoder) + 'static,
+{
     event_loop.run(move |event, _, control_flow| match event {
+        Event::RedrawRequested(window_id) if window_id == window.id() => {
+            let mut command_encoder =
+                device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                    label: Some("Encoder"),
+                });
+            render(&mut command_encoder);
+            queue.submit(Some(command_encoder.finish()));
+        }
         Event::WindowEvent {
             ref event,
             window_id,
