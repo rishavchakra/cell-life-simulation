@@ -10,13 +10,11 @@ use shared::{
 
 #[tokio::main]
 async fn main() {
-    println!("Hello World!");
     let window = window::WindowData::new("Cells").await;
     let cell_texture =
         texture::Texture::new(&window.device, &window.size, wgpu::TextureFormat::R32Float);
     let simulation_params =
         SimulationParamsBuf::new(&window.device, SimulationParams::new(&window.size));
-    let mut renderer = renderer::Renderer::new(
     let renderer = renderer::Renderer::new(
         &window.device,
         &cell_texture,

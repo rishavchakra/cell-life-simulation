@@ -4,6 +4,8 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
+use super::renderer::Renderer;
+
 pub struct WindowData {
     window: Window,
     pub size: winit::dpi::PhysicalSize<u32>,
@@ -110,7 +112,8 @@ pub fn run (
 ) {
     event_loop.run(move |event, _, control_flow| match event {
         Event::RedrawRequested(window_id) if window_id == window.id() => {
-            let render_command_encoder = renderer.render(&device, &surface);
+            let surface_texture = &surface.get_current_texture().unwrap();
+            let render_command_encoder = renderer.render(&device, &surface_texture);
             queue.submit(std::iter::once(render_command_encoder.finish()));
         }
         Event::WindowEvent {

@@ -16,7 +16,7 @@ pub struct Renderer {
 impl Renderer {
     pub fn new(
         device: &wgpu::Device,
-        texture: &Texture,
+        cell_texture: &Texture,
         sim_params: &SimulationParamsBuf,
         surface_config: &wgpu::SurfaceConfiguration,
     ) -> Self {
@@ -48,7 +48,7 @@ impl Renderer {
                     binding: 0,
                     ty: wgpu::BindingType::StorageTexture {
                         access: wgpu::StorageTextureAccess::ReadOnly,
-                        format: texture.texture_format,
+                        format: cell_texture.texture_format,
                         view_dimension: wgpu::TextureViewDimension::D2,
                     },
                     visibility: wgpu::ShaderStages::FRAGMENT,
@@ -74,7 +74,7 @@ impl Renderer {
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&texture.texture_view),
+                    resource: wgpu::BindingResource::TextureView(&cell_texture.texture_view),
                 },
                 wgpu::BindGroupEntry {
                     binding: 1,
@@ -85,7 +85,7 @@ impl Renderer {
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
-            bind_group_layouts: &[&bind_group_layout],
+            bind_group_layouts: &[],
             push_constant_ranges: &[],
         });
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -124,17 +124,12 @@ impl Renderer {
         }
     }
 
-    pub fn render(&mut self, texture: &Texture, encoder: &mut wgpu::CommandEncoder) {
-        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     pub fn render(
         &mut self,
         device: &wgpu::Device,
-        surface: &wgpu::Surface,
+        surface_texture: &wgpu::SurfaceTexture,
     ) -> wgpu::CommandEncoder {
-        println!("Render called");
-        let view = surface
-            .get_current_texture()
-            .unwrap()
+        let view = surface_texture
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
         let mut command_encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -144,7 +139,6 @@ impl Renderer {
             label: Some("Render Pass"),
             depth_stencil_attachment: None,
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &texture.texture_view,
                 view: &view,
                 resolve_target: None,
                 ops: wgpu::Operations {
@@ -165,6 +159,7 @@ impl Renderer {
         render_pass.draw_indexed(0..6, 0, 0..1);
         render_pass.pop_debug_group();
         drop(render_pass);
+        drop(view);
 
         command_encoder
     }
