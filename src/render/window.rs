@@ -96,7 +96,7 @@ impl WindowData {
     }
 }
 
-pub fn run (
+pub fn run(
     WindowData {
         // destructured to allow for partial borrows
         window,
@@ -108,7 +108,7 @@ pub fn run (
         surface,
         mut surface_config,
     }: WindowData,
-    mut renderer: Renderer
+    mut renderer: Renderer,
 ) {
     event_loop.run(move |event, _, control_flow| match event {
         Event::RedrawRequested(window_id) if window_id == window.id() => {
